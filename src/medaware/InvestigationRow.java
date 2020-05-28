@@ -28,17 +28,6 @@ public class InvestigationRow
         return line;
     }
 
-    public String getPrintableWords()
-    {
-        StringBuilder builder = new StringBuilder();
-        for(String str : words)
-        {
-            builder.append("Word: ").append(str).append(", ");
-        }
-        builder.append("\n");
-        return builder.toString();
-    }
-
     public List<String> getWords()
     {
         return words;

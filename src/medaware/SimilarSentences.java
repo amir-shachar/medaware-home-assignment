@@ -14,17 +14,6 @@ public class SimilarSentences
         addToGroup(row1);
     }
 
-    public void addToGroup(InvestigationRow row1, InvestigationRow row2)
-    {
-        rows.add(row1);
-        rows.add(row2);
-    }
-
-    public boolean doesContain(InvestigationRow row2)
-    {
-        return rows.contains(row2);
-    }
-
     public int getWordIndex()
     {
         return commonWordIndex;

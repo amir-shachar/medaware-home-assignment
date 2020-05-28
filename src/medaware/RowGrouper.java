@@ -11,7 +11,7 @@ class RowGrouper
     private List<InvestigationRow> report = new ArrayList<>();
     private List<SimilarSentences> similarSentencesList = new ArrayList<>();
 
-    public List<SimilarSentences>  getGroupings() throws FileNotFoundException
+    public List<SimilarSentences> getGroupings() throws FileNotFoundException
     {
         loadTextLinesIntoReport();
         splitIntoGroups();
@@ -31,28 +31,33 @@ class RowGrouper
     {
         for (InvestigationRow row : report)
         {
-            if (describesEating(row))
-            {
-                addToEatingGroupIfExists(row);
-                if (eatsAtDiner(row))
-                {
-                    addToDinerGroupIfExists(row);
-                }
-                else if (eatsAtRestaurant(row))
-                {
-                    addToRestaurantGroupIfExists(row);
-                }
-            }
-            else
-            {
-                addToGettingGroupIfExists(row);
-            }
+            assignRowToRelevantGroups(row);
         }
     }
 
-    private static boolean eatsAtRestaurant(InvestigationRow row)
+    private void assignRowToRelevantGroups(InvestigationRow row)
     {
-        return row.getWords().get(5).equals("restaurant");
+        if (describesEating(row))
+        {
+            addRowToEatingRelatedGroups(row);
+        }
+        else
+        {
+            addToGettingGroupIfExists(row);
+        }
+    }
+
+    private void addRowToEatingRelatedGroups(InvestigationRow row)
+    {
+        addToEatingGroupIfExists(row);
+        if (eatsAtDiner(row))
+        {
+            addToDinerGroupIfExists(row);
+        }
+        else if (eatsAtRestaurant(row))
+        {
+            addToRestaurantGroupIfExists(row);
+        }
     }
 
     private void addToGettingGroupIfExists(InvestigationRow row)
@@ -80,11 +85,6 @@ class RowGrouper
         return -1;
     }
 
-    private boolean isGettingGroup(SimilarSentences similarSentences)
-    {
-        return similarSentences.getRows().stream().allMatch(row -> row.getWords().get(2).equals("getting"));
-    }
-
     private int eatingRestaurantGroupIndex()
     {
         for (int i = 0; i < similarSentencesList.size(); i++)
@@ -97,10 +97,44 @@ class RowGrouper
         return -1;
     }
 
+    private int eatingDinerGroupIndex()
+    {
+        for (int i = 0; i < similarSentencesList.size(); i++)
+        {
+            if (isEatingDinerGroup(similarSentencesList.get(i)))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int eatingGroupOfNameIndex(String name)
+    {
+        for (int i = 0; i < similarSentencesList.size(); i++)
+        {
+            if (isEatingGroupOfName(similarSentencesList.get(i), name))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private boolean isGettingGroup(SimilarSentences similarSentences)
+    {
+        return similarSentences.getRows().stream().allMatch(row -> row.getWords().get(2).equals("getting"));
+    }
+
     private boolean isEatingRestaurantGroup(SimilarSentences similarSentences)
     {
         return similarSentences.getWordIndex() == 0 &&
                 similarSentences.getRows().stream().allMatch(RowGrouper::eatsAtRestaurant);
+    }
+
+    private static boolean eatsAtRestaurant(InvestigationRow row)
+    {
+        return row.getWords().get(5).equals("restaurant");
     }
 
     private void addToRestaurantGroupIfExists(InvestigationRow row)
@@ -129,16 +163,17 @@ class RowGrouper
         }
     }
 
-    private int eatingDinerGroupIndex()
+    private void addToEatingGroupIfExists(InvestigationRow row1)
     {
-        for (int i = 0; i < similarSentencesList.size(); i++)
+        int groupIndex = eatingGroupOfNameIndex(row1.getWords().get(0));
+        if (groupIndex != -1)
         {
-            if (isEatingDinerGroup(similarSentencesList.get(i)))
-            {
-                return i;
-            }
+            similarSentencesList.get(groupIndex).addToGroup(row1);
         }
-        return -1;
+        else
+        {
+            similarSentencesList.add(new SimilarSentences(row1, 5));
+        }
     }
 
     private boolean isEatingDinerGroup(SimilarSentences similarSentences)
@@ -151,30 +186,6 @@ class RowGrouper
         return row1.getWords().get(5).equals("diner");
     }
 
-    private void addToEatingGroupIfExists(InvestigationRow row1)
-    {
-        int groupIndex = eatingGroupOfNameExists(row1.getWords().get(0));
-        if (groupIndex != -1)
-        {
-            similarSentencesList.get(groupIndex).addToGroup(row1);
-        }
-        else
-        {
-            similarSentencesList.add(new SimilarSentences(row1, 5));
-        }
-    }
-
-    private int eatingGroupOfNameExists(String name)
-    {
-        for (int i = 0; i < similarSentencesList.size(); i++)
-        {
-            if (isEatingGroupOfName(similarSentencesList.get(i), name))
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
 
     private boolean isEatingGroupOfName(SimilarSentences similarSentences, String name)
     {
