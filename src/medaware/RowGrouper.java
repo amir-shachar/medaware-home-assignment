@@ -186,7 +186,6 @@ class RowGrouper
         return row1.getWords().get(5).equals("diner");
     }
 
-
     private boolean isEatingGroupOfName(SimilarSentences similarSentences, String name)
     {
         return similarSentences.getRows().stream().allMatch(
